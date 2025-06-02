@@ -8,6 +8,9 @@ from pydantic import BaseModel, Field
 from enum import Enum
 import inspect
 import json
+import logging
+from dataclasses import dataclass, field
+from pathlib import Path
 
 
 class ToolCategory(str, Enum):
@@ -214,3 +217,80 @@ def mcp_tool(name: str, description: str, category: ToolCategory,
         return tool_instance
     
     return decorator 
+
+@dataclass
+class ToolResult:
+    """Represents the result of a tool execution."""
+    success: bool
+    data: Any
+    error: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+class MCP:
+    """Base Machine-Coded Program class for managing and executing tools."""
+    
+    def __init__(self, cache_dir: Optional[str] = None):
+        self.tools: Dict[str, Callable] = {}
+        self.cache_dir = Path(cache_dir) if cache_dir else Path(".mcp_cache")
+        self.cache_dir.mkdir(exist_ok=True)
+        self.logger = logging.getLogger("MCP")
+        self._setup_logging()
+    
+    def _setup_logging(self):
+        """Configure logging for the MCP instance."""
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+    
+    def register_tool(self, name: str, tool_func: Callable) -> None:
+        """Register a new tool with the MCP instance."""
+        if name in self.tools:
+            self.logger.warning(f"Tool '{name}' is being overwritten")
+        self.tools[name] = tool_func
+        self.logger.info(f"Registered tool: {name}")
+    
+    def execute_tool(self, tool_name: str, **kwargs) -> ToolResult:
+        """Execute a registered tool with the given parameters."""
+        if tool_name not in self.tools:
+            return ToolResult(
+                success=False,
+                data=None,
+                error=f"Tool '{tool_name}' not found"
+            )
+        
+        try:
+            result = self.tools[tool_name](**kwargs)
+            return ToolResult(success=True, data=result)
+        except Exception as e:
+            self.logger.error(f"Error executing tool '{tool_name}': {str(e)}")
+            return ToolResult(
+                success=False,
+                data=None,
+                error=str(e)
+            )
+    
+    def get_tool_list(self) -> List[str]:
+        """Get a list of all registered tool names."""
+        return list(self.tools.keys())
+    
+    def cache_result(self, key: str, result: Any) -> None:
+        """Cache a tool result for future use."""
+        cache_file = self.cache_dir / f"{key}.json"
+        try:
+            with open(cache_file, 'w') as f:
+                json.dump(result, f)
+        except Exception as e:
+            self.logger.error(f"Error caching result: {str(e)}")
+    
+    def get_cached_result(self, key: str) -> Optional[Any]:
+        """Retrieve a cached result if it exists."""
+        cache_file = self.cache_dir / f"{key}.json"
+        if cache_file.exists():
+            try:
+                with open(cache_file, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                self.logger.error(f"Error reading cached result: {str(e)}")
+        return None 
