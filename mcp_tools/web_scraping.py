@@ -35,14 +35,14 @@ class WebContentExtractor(MCPTool):
                      extract_images: bool = True,
                      extract_metadata: bool = True,
                      follow_redirects: bool = True,
-                     timeout: int = 30) -> Dict[str, Any]:
+                     timeout: float = 30.0) -> Dict[str, Any]:
         """Extract content from a web page."""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
             
-            response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=follow_redirects)
+            response = requests.get(url, headers=headers, timeout=float(timeout), allow_redirects=follow_redirects)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'html.parser')
@@ -186,7 +186,7 @@ class APIClient(MCPTool):
                      json_data: Optional[Dict[str, Any]] = None,
                      auth_type: Optional[str] = None,
                      auth_credentials: Optional[Dict[str, str]] = None,
-                     timeout: int = 30) -> Dict[str, Any]:
+                     timeout: float = 30.0) -> Dict[str, Any]:
         """Make an HTTP request to an API."""
         try:
             # Prepare request
@@ -217,7 +217,7 @@ class APIClient(MCPTool):
                 data=data,
                 json=json_data,
                 auth=auth,
-                timeout=timeout
+                timeout=float(timeout)
             )
             
             # Parse response
@@ -269,7 +269,7 @@ class WebFormSubmitter(MCPTool):
                      form_data: Dict[str, str],
                      form_selector: Optional[str] = None,
                      submit_button_selector: Optional[str] = None,
-                     timeout: int = 30) -> Dict[str, Any]:
+                     timeout: float = 30.0) -> Dict[str, Any]:
         """Submit a form on a web page."""
         try:
             session = requests.Session()
@@ -278,7 +278,7 @@ class WebFormSubmitter(MCPTool):
             }
             
             # Get the page with the form
-            response = session.get(url, headers=headers, timeout=timeout)
+            response = session.get(url, headers=headers, timeout=float(timeout))
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'html.parser')
@@ -333,9 +333,9 @@ class WebFormSubmitter(MCPTool):
             
             # Submit the form
             if form_method == 'POST':
-                submit_response = session.post(form_url, data=form_fields, headers=headers, timeout=timeout)
+                submit_response = session.post(form_url, data=form_fields, headers=headers, timeout=float(timeout))
             else:
-                submit_response = session.get(form_url, params=form_fields, headers=headers, timeout=timeout)
+                submit_response = session.get(form_url, params=form_fields, headers=headers, timeout=float(timeout))
             
             return {
                 "form_url": form_url,
@@ -373,7 +373,7 @@ class WebsiteMonitor(MCPTool):
                      check_type: str = "content",
                      selector: Optional[str] = None,
                      previous_content: Optional[str] = None,
-                     timeout: int = 30) -> Dict[str, Any]:
+                     timeout: float = 30.0) -> Dict[str, Any]:
         """Monitor a website for changes."""
         try:
             headers = {
@@ -381,7 +381,7 @@ class WebsiteMonitor(MCPTool):
             }
             
             start_time = time.time()
-            response = requests.get(url, headers=headers, timeout=timeout)
+            response = requests.get(url, headers=headers, timeout=float(timeout))
             response_time = time.time() - start_time
             
             result = {
@@ -458,10 +458,10 @@ class SitemapParser(MCPTool):
     
     async def execute(self,
                      sitemap_url: str,
-                     timeout: int = 30) -> Dict[str, Any]:
+                     timeout: float = 30.0) -> Dict[str, Any]:
         """Parse a sitemap XML file."""
         try:
-            response = requests.get(sitemap_url, timeout=timeout)
+            response = requests.get(sitemap_url, timeout=float(timeout))
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'xml')
