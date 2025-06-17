@@ -28,7 +28,7 @@ class Debugger:
 @mcp_tool(
     name="debug_function",
     description="Debug a function with detailed logging",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.DEBUGGING,
     examples=[
         {
             "function_name": "process_data",
@@ -93,7 +93,7 @@ async def debug_function(
 @mcp_tool(
     name="run_tests",
     description="Run unit tests for a Python module",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.DEBUGGING,
     examples=[
         {
             "test_file": "test_example.py",
@@ -150,7 +150,7 @@ async def run_tests(
 @mcp_tool(
     name="profile_function",
     description="Profile a function's performance",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.DEBUGGING,
     examples=[
         {
             "function_name": "process_data",
