@@ -23,7 +23,7 @@ class CodeGenerator:
 @mcp_tool(
     name="generate_class",
     description="Generate a Python class from a template",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.CODE_GENERATION,
     examples=[
         {
             "template_name": "class_template.py",
@@ -57,7 +57,7 @@ async def generate_class(
 @mcp_tool(
     name="generate_api_endpoint",
     description="Generate a REST API endpoint from a template",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.CODE_GENERATION,
     examples=[
         {
             "template_name": "api_endpoint.py",
@@ -91,7 +91,7 @@ async def generate_api_endpoint(
 @mcp_tool(
     name="generate_test",
     description="Generate unit tests from a template",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.CODE_GENERATION,
     examples=[
         {
             "template_name": "test_template.py",
