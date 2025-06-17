@@ -19,6 +19,9 @@ class ToolCategory(str, Enum):
     GIT_OPERATIONS = "git_operations"
     CODE_QUALITY = "code_quality"
     DOCUMENTATION = "documentation"
+    CODE_GENERATION = "code_generation"
+    CODE_MODIFICATION = "code_modification"
+    DEBUGGING = "debugging"
 
 
 class ParameterSchema(BaseModel):
