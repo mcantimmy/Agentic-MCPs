@@ -26,7 +26,7 @@ class CodeModifier:
 @mcp_tool(
     name="format_code",
     description="Format Python code using black and isort",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.CODE_MODIFICATION,
     examples=[
         {
             "file_path": "example.py",
@@ -60,7 +60,7 @@ async def format_code(
 @mcp_tool(
     name="refactor_imports",
     description="Refactor and organize imports in Python code",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.CODE_MODIFICATION,
     examples=[
         {
             "file_path": "example.py",
@@ -109,7 +109,7 @@ async def refactor_imports(
 @mcp_tool(
     name="rename_variable",
     description="Rename a variable throughout a Python file",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.CODE_MODIFICATION,
     examples=[
         {
             "file_path": "example.py",
@@ -149,7 +149,7 @@ async def rename_variable(
 @mcp_tool(
     name="extract_method",
     description="Extract a code block into a new method",
-    category=ToolCategory.CODE_ANALYSIS,
+    category=ToolCategory.CODE_MODIFICATION,
     examples=[
         {
             "file_path": "example.py",
