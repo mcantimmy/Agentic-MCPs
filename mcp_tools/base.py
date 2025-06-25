@@ -20,6 +20,7 @@ class ToolCategory(str, Enum):
     CODE_QUALITY = "code_quality"
     DOCUMENTATION = "documentation"
     CODE_GENERATION = "code_generation"
+    AGENT_GENERATION = "agent_generation"
     CODE_MODIFICATION = "code_modification"
     DEBUGGING = "debugging"
 
