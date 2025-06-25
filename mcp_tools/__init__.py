@@ -11,6 +11,7 @@ from .git_operations import *
 from .code_quality import *
 from .documentation import *
 from .code_generation import *
+from .agent_generation import *
 from .code_modification import *
 from .debugging import *
 
