@@ -3,10 +3,11 @@
 Example script demonstrating the Agent Generation system.
 
 This script shows how to:
-1. Create sub-agents
-2. Assign tasks to agents
-3. Monitor agent status
-4. Collect results from agents
+1. Register as the primary agent
+2. Create sub-agents
+3. Assign tasks to agents
+4. Monitor agent status
+5. Collect results from agents
 """
 
 import asyncio
@@ -18,6 +19,8 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mcp_tools.agent_generation import (
+    register_as_primary_agent,
+    get_primary_agent_id,
     create_sub_agent,
     assign_task_to_agent,
     get_agent_status,
@@ -29,9 +32,32 @@ from mcp_tools.agent_generation import (
 )
 
 
-async def basic_agent_example():
+async def registration_example():
+    """Example of registering as the primary agent."""
+    print("=== Primary Agent Registration Example ===")
+    
+    # Register as the primary agent
+    print("Registering as the primary agent...")
+    result = await register_as_primary_agent(
+        agent_name="ClaudeAgent",
+        description="Claude AI agent accessing MCP tools"
+    )
+    primary_data = json.loads(result)
+    primary_agent_id = primary_data["agent_id"]
+    print(f"Registered as primary agent: {primary_data}")
+    
+    # Get primary agent ID
+    print("\nGetting primary agent ID...")
+    primary_id_result = await get_primary_agent_id()
+    primary_id_data = json.loads(primary_id_result)
+    print(f"Primary agent info: {primary_id_data}")
+    
+    return primary_agent_id
+
+
+async def basic_agent_example(primary_agent_id: str):
     """Basic example of creating and using a single agent."""
-    print("=== Basic Agent Example ===")
+    print("\n=== Basic Agent Example ===")
     
     # Create a sub-agent
     print("Creating a code review agent...")
@@ -78,7 +104,7 @@ async def basic_agent_example():
     print("Agent terminated.")
 
 
-async def hierarchy_example():
+async def hierarchy_example(primary_agent_id: str):
     """Example of creating a hierarchy of agents."""
     print("\n=== Agent Hierarchy Example ===")
     
@@ -163,7 +189,7 @@ async def hierarchy_example():
     print("All agents terminated.")
 
 
-async def monitoring_example():
+async def monitoring_example(primary_agent_id: str):
     """Example of monitoring agent activities."""
     print("\n=== Agent Monitoring Example ===")
     
@@ -211,14 +237,17 @@ async def main():
     print("=" * 50)
     
     try:
-        # Run basic example
-        await basic_agent_example()
+        # Step 1: Register as primary agent
+        primary_agent_id = await registration_example()
         
-        # Run hierarchy example
-        await hierarchy_example()
+        # Step 2: Run basic example
+        await basic_agent_example(primary_agent_id)
         
-        # Run monitoring example
-        await monitoring_example()
+        # Step 3: Run hierarchy example
+        await hierarchy_example(primary_agent_id)
+        
+        # Step 4: Run monitoring example
+        await monitoring_example(primary_agent_id)
         
         print("\n" + "=" * 50)
         print("All examples completed successfully!")
