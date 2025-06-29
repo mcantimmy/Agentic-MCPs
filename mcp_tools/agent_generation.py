@@ -530,13 +530,99 @@ async def create_agent_hierarchy(
     })
 
 
+@mcp_tool(
+    name="register_as_primary_agent",
+    description="Register the external agent as the primary agent and get its ID",
+    category=ToolCategory.AGENT_GENERATION,
+    examples=[
+        {
+            "agent_name": "ClaudeAgent",
+            "description": "Register Claude as the primary agent"
+        }
+    ]
+)
+async def register_as_primary_agent(
+    agent_name: str = "ExternalPrimaryAgent",
+    description: str = ""
+) -> str:
+    """Register the external agent as the primary agent.
+    
+    This allows the external agent (Claude, GPT, etc.) to identify itself
+    as the primary agent and create sub-agents that inherit its tool access.
+    """
+    # Create a new agent ID for the external agent
+    external_agent_id = str(uuid.uuid4())
+    
+    # Create the external agent
+    external_agent = SubAgent(external_agent_id, agent_name)
+    
+    # Add all available tools to the external agent
+    from .base import ToolRegistry
+    all_tools = ToolRegistry.get_all_tools()
+    for tool in all_tools:
+        external_agent.add_tool(tool)
+    
+    # Register the external agent
+    _agent_manager.agents[external_agent_id] = external_agent
+    _agent_manager.primary_agent_id = external_agent_id
+    _agent_manager.reports[external_agent_id] = []
+    
+    # Start the external agent
+    external_agent.start()
+    
+    return json.dumps({
+        "agent_id": external_agent_id,
+        "name": agent_name,
+        "status": "registered_as_primary",
+        "message": f"External agent '{agent_name}' registered as primary agent with ID: {external_agent_id}",
+        "available_tools_count": len(all_tools)
+    })
+
+
+@mcp_tool(
+    name="get_primary_agent_id",
+    description="Get the ID of the current primary agent",
+    category=ToolCategory.AGENT_GENERATION,
+    examples=[
+        {}
+    ]
+)
+async def get_primary_agent_id() -> str:
+    """Get the ID of the current primary agent."""
+    primary_id = _agent_manager.primary_agent_id
+    
+    if primary_id:
+        # Get agent info
+        agent_info = _agent_manager.get_agent_status(primary_id)
+        if agent_info:
+            return json.dumps({
+                "primary_agent_id": primary_id,
+                "agent_info": agent_info
+            })
+        else:
+            return json.dumps({
+                "primary_agent_id": primary_id,
+                "message": "Primary agent ID found but agent not in registry"
+            })
+    else:
+        return json.dumps({
+            "error": "No primary agent registered"
+        }) 
+
+
 # Initialize primary agent when the module is loaded
 def initialize_primary_agent():
-    """Initialize the primary agent with all available tools."""
+    """Initialize the primary agent with all available tools.
+    
+    Note: This creates an internal primary agent that serves as a template
+    for sub-agents. The actual "primary agent" is the external agent
+    (Claude, GPT, etc.) that accesses this MCP server and uses these tools
+    to create sub-agents.
+    """
     from .base import ToolRegistry
     
     primary_agent_id = str(uuid.uuid4())
-    primary_agent = SubAgent(primary_agent_id, "PrimaryAgent")
+    primary_agent = SubAgent(primary_agent_id, "InternalPrimaryAgent")
     
     # Add all available tools to the primary agent
     all_tools = ToolRegistry.get_all_tools()
@@ -553,5 +639,23 @@ def initialize_primary_agent():
     return primary_agent_id
 
 
+def get_external_primary_agent_id() -> str:
+    """Get the ID of the external primary agent (the one accessing the MCP server).
+    
+    This function allows the external agent to identify itself as the primary
+    and create sub-agents that inherit its tool access.
+    """
+    return _agent_manager.primary_agent_id
+
+
+def set_external_primary_agent_id(agent_id: str):
+    """Set the external primary agent ID.
+    
+    This allows the external agent to register itself as the primary agent
+    when it first accesses the MCP server.
+    """
+    _agent_manager.primary_agent_id = agent_id
+
+
 # Initialize the primary agent when the module is imported
-_primary_agent_id = initialize_primary_agent() 
+_primary_agent_id = initialize_primary_agent()
