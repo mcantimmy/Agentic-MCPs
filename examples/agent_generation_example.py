@@ -18,18 +18,18 @@ import os
 # Add the parent directory to the path to import mcp_tools
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mcp_tools.agent_generation import (
-    register_as_primary_agent,
-    get_primary_agent_id,
-    create_sub_agent,
-    assign_task_to_agent,
-    get_agent_status,
-    get_agent_reports,
-    list_all_agents,
-    terminate_agent,
-    create_agent_hierarchy,
-    TaskPriority
+from mcp_tools.agent_generation_helpers import (
+    register_as_primary_agent_helper,
+    get_primary_agent_id_helper,
+    create_sub_agent_helper,
+    assign_task_to_agent_helper,
+    get_agent_status_helper,
+    get_agent_reports_helper,
+    list_all_agents_helper,
+    terminate_agent_helper,
+    create_agent_hierarchy_helper
 )
+from mcp_tools.agent_generation import TaskPriority
 
 
 async def registration_example():
@@ -38,7 +38,7 @@ async def registration_example():
     
     # Register as the primary agent
     print("Registering as the primary agent...")
-    result = await register_as_primary_agent(
+    result = await register_as_primary_agent_helper(
         agent_name="ClaudeAgent",
         description="Claude AI agent accessing MCP tools"
     )
@@ -48,7 +48,7 @@ async def registration_example():
     
     # Get primary agent ID
     print("\nGetting primary agent ID...")
-    primary_id_result = await get_primary_agent_id()
+    primary_id_result = await get_primary_agent_id_helper()
     primary_id_data = json.loads(primary_id_result)
     print(f"Primary agent info: {primary_id_data}")
     
@@ -61,7 +61,7 @@ async def basic_agent_example(primary_agent_id: str):
     
     # Create a sub-agent
     print("Creating a code review agent...")
-    result = await create_sub_agent(
+    result = await create_sub_agent_helper(
         name="CodeReviewAgent",
         description="Specialized agent for code review tasks"
     )
@@ -71,7 +71,7 @@ async def basic_agent_example(primary_agent_id: str):
     
     # Assign a task to the agent
     print("\nAssigning a code review task...")
-    task_result = await assign_task_to_agent(
+    task_result = await assign_task_to_agent_helper(
         agent_id=agent_id,
         task_description="Review the main application file",
         instructions="""
@@ -90,17 +90,17 @@ async def basic_agent_example(primary_agent_id: str):
     await asyncio.sleep(2)
     
     # Check agent status
-    status = await get_agent_status(agent_id)
+    status = await get_agent_status_helper(agent_id)
     status_data = json.loads(status)
     print(f"Agent status: {status_data}")
     
     # Get agent reports
-    reports = await get_agent_reports(agent_id)
+    reports = await get_agent_reports_helper(agent_id)
     reports_data = json.loads(reports)
     print(f"Agent reports: {reports_data}")
     
     # Clean up
-    await terminate_agent(agent_id)
+    await terminate_agent_helper(agent_id)
     print("Agent terminated.")
 
 
@@ -110,7 +110,7 @@ async def hierarchy_example(primary_agent_id: str):
     
     # Create a hierarchy of specialized agents
     print("Creating agent hierarchy...")
-    hierarchy_result = await create_agent_hierarchy({
+    hierarchy_result = await create_agent_hierarchy_helper({
         "coordinator": "ProjectManager",
         "sub_agents": [
             {"name": "CodeAnalyzer", "role": "code_analysis"},
@@ -126,7 +126,7 @@ async def hierarchy_example(primary_agent_id: str):
     print("\nAssigning specialized tasks...")
     for agent in hierarchy_data["agents"]:
         if agent["role"] == "code_analysis":
-            await assign_task_to_agent(
+            await assign_task_to_agent_helper(
                 agent_id=agent["agent_id"],
                 task_description="Analyze code quality and complexity",
                 instructions="""
@@ -136,7 +136,7 @@ async def hierarchy_example(primary_agent_id: str):
                 priority=TaskPriority.MEDIUM
             )
         elif agent["role"] == "security":
-            await assign_task_to_agent(
+            await assign_task_to_agent_helper(
                 agent_id=agent["agent_id"],
                 task_description="Perform security audit",
                 instructions="""
@@ -147,7 +147,7 @@ async def hierarchy_example(primary_agent_id: str):
                 priority=TaskPriority.HIGH
             )
         elif agent["role"] == "performance":
-            await assign_task_to_agent(
+            await assign_task_to_agent_helper(
                 agent_id=agent["agent_id"],
                 task_description="Test application performance",
                 instructions="""
@@ -164,7 +164,7 @@ async def hierarchy_example(primary_agent_id: str):
     
     # Monitor all agents
     print("\nMonitoring all agents...")
-    agents = await list_all_agents()
+    agents = await list_all_agents_helper()
     agents_data = json.loads(agents)
     
     for agent in agents_data["agents"]:
@@ -174,7 +174,7 @@ async def hierarchy_example(primary_agent_id: str):
         print(f"  Available tools: {len(agent['available_tools'])}")
         
         # Get reports for this agent
-        reports = await get_agent_reports(agent["agent_id"])
+        reports = await get_agent_reports_helper(agent["agent_id"])
         reports_data = json.loads(reports)
         
         for report in reports_data:
@@ -185,7 +185,7 @@ async def hierarchy_example(primary_agent_id: str):
     # Clean up all agents
     print("\nCleaning up agents...")
     for agent in agents_data["agents"]:
-        await terminate_agent(agent["agent_id"])
+        await terminate_agent_helper(agent["agent_id"])
     print("All agents terminated.")
 
 
@@ -196,7 +196,7 @@ async def monitoring_example(primary_agent_id: str):
     # Create multiple agents
     agents = []
     for i in range(3):
-        result = await create_sub_agent(f"WorkerAgent_{i+1}")
+        result = await create_sub_agent_helper(f"WorkerAgent_{i+1}")
         agent_data = json.loads(result)
         agents.append(agent_data["agent_id"])
     
@@ -204,7 +204,7 @@ async def monitoring_example(primary_agent_id: str):
     
     # Assign simple tasks to each agent
     for i, agent_id in enumerate(agents):
-        await assign_task_to_agent(
+        await assign_task_to_agent_helper(
             agent_id=agent_id,
             task_description=f"Task {i+1}",
             instructions=f"# process_data: {{\"task_id\": {i+1}}}",
@@ -214,12 +214,12 @@ async def monitoring_example(primary_agent_id: str):
     # Monitor agents in real-time
     print("\nMonitoring agents in real-time...")
     for _ in range(5):  # Monitor for 5 iterations
-        all_agents = await list_all_agents()
+        all_agents = await list_all_agents_helper()
         agents_data = json.loads(all_agents)
         
         print(f"\n--- Status Update ---")
         for agent in agents_data["agents"]:
-            status = await get_agent_status(agent["agent_id"])
+            status = await get_agent_status_helper(agent["agent_id"])
             status_data = json.loads(status)
             print(f"{agent['name']}: {status_data['status']}")
         
@@ -227,7 +227,7 @@ async def monitoring_example(primary_agent_id: str):
     
     # Clean up
     for agent_id in agents:
-        await terminate_agent(agent_id)
+        await terminate_agent_helper(agent_id)
     print("Monitoring example completed.")
 
 
