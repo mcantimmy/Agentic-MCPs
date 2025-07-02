@@ -12,6 +12,7 @@ from .code_quality import *
 from .documentation import *
 from .code_generation import *
 from .agent_generation import *
+from .agent_generation_helpers import *
 from .code_modification import *
 from .debugging import *
 
